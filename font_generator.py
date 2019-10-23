@@ -56,17 +56,7 @@ class FontConstructor(BoxLayout):
         size_h_input = TextInput(text='7', multiline=False, size_hint_max_x=40)
         settings.add_widget(size_h_input)
 
-        def add_frame(instance):
-            frames.append(np.zeros((7, 11), dtype=np.uint8))
-
-        def next_frame(instance):
-            global current_frame
-            if current_frame + 1 >= len(frames):
-                current_frame = 0
-            else:
-                current_frame += 1
-            frame_label.text = f'Frame: {current_frame}'
-
+        def restore_button_state():
             for i in range(0, 7):
                 for j in range(0, 11):
                     if frames[current_frame][i][j] == 1:
@@ -74,29 +64,46 @@ class FontConstructor(BoxLayout):
                     else:
                         buttons[i][j].state = 'normal'
 
+        def add_frame(instance):
+            frames.append(np.zeros((7, 11), dtype=np.uint8))
+            next_frame(instance)
 
+        def rem_frame(instance):
+            frames.pop(current_frame)
 
-        next_frame = Button(text='>>', size_hint_max_x=30, on_press=next_frame)
-        settings.add_widget(next_frame)
-        prev_frame = Button(text='<<', size_hint_max_x=30)
-        settings.add_widget(prev_frame)
-        add_frame = Button(text='+', size_hint_max_x=30, on_press=add_frame)
-        settings.add_widget(add_frame)
-        remove_frame = Button(text='-', size_hint_max_x=30)
-        settings.add_widget(remove_frame)
+        def next_frame(instance):
+            global current_frame
+            if current_frame != len(frames)-1:
+                current_frame += 1
+                frame_label.text = f'Frame: {current_frame}'
+                restore_button_state()
 
-        def callback(instance):
+        def prev_frame(instance):
+            global current_frame
+            if current_frame != 0:
+                current_frame -= 1
+                frame_label.text = f'Frame: {current_frame}'
+                restore_button_state()
+
+        prev_frame_button = Button(text='<<', size_hint_max_x=30, on_press=prev_frame)
+        settings.add_widget(prev_frame_button)
+        next_frame_button = Button(text='>>', size_hint_max_x=30, on_press=next_frame)
+        settings.add_widget(next_frame_button)
+        add_frame_button = Button(text='+', size_hint_max_x=30, on_press=add_frame)
+        settings.add_widget(add_frame_button)
+        remove_frame_button = Button(text='-', size_hint_max_x=30, on_press=rem_frame)
+        settings.add_widget(remove_frame_button)
+
+        def process_matrix_changes(instance):
             print(f'The button on  {instance.column}, {instance.row} is being pressed')
             if instance.state == 'down':
                 frames[current_frame][instance.row][instance.column] = 1
             else:
-                frames[current_frame][instance.column] = 0
+                frames[current_frame][instance.row][instance.column] = 0
 
         def save_callback(instance):
             print(frames)
             np.save(filename_input.text, frames)
-            # r = np.load(filename_input.text + '.npy')
-            # print(r)
 
         save = Button()
         save.text = "Save"
@@ -111,7 +118,7 @@ class FontConstructor(BoxLayout):
                 button_row.append(btn)
                 btn.row = i
                 btn.column = j
-                btn.bind(on_press=callback)
+                btn.bind(on_press=process_matrix_changes)
                 pixels.add_widget(btn)
             buttons.append(button_row)
 
