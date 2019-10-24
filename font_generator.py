@@ -28,7 +28,7 @@ current_frame = 0
 class FontConstructor(BoxLayout):
 
     def __init__(self, **kwargs):
-        super(FontConstructor, self).__init__(**kwargs)
+        super(FontConstructor, self).__init__(spacing=5, **kwargs)
 
         self.orientation = 'vertical'
         self.width = 30
@@ -38,7 +38,7 @@ class FontConstructor(BoxLayout):
         def load_callback(instance):
             global frames
             frames = list(np.load(filename_input.text + '.npy'))
-            restore_button_state()
+            update_buttons()
 
         def save_callback(instance):
             np.save(filename_input.text, frames)
@@ -56,6 +56,7 @@ class FontConstructor(BoxLayout):
             frames = [matrix]
             buttons = []
             current_frame = 0
+            frame_label.text = f'Frame: {current_frame}'
             for i in range(0, rows):
                 button_row = []
                 for j in range(0, cols):
@@ -79,20 +80,15 @@ class FontConstructor(BoxLayout):
         size_holder.add_widget(size_label_y)
         size_h_input = TextInput(text=str(rows), multiline=False, size_hint_max_x=40)
         size_holder.add_widget(size_h_input)
-
         button_holder = BoxLayout(orientation='horizontal', size_hint_max_y=40)
         content.add_widget(button_holder)
-        create_button = Button(text='Create', on_press = new_file_callback)
+        create_button = Button(text='Create', on_press=new_file_callback)
         button_holder.add_widget(create_button)
-        cancel_button = Button(text='Cancel')
-        button_holder.add_widget(cancel_button)
 
-
-
-        popup = Popup(title='Select size', content=content, size_hint=(0.8, 0.8),
+        popup = Popup(title='Select size', content=content, size_hint=(0.8, 0.5),
                       auto_dismiss=False)
 
-        menu = BoxLayout(orientation='horizontal', size_hint=(1, 0.1))
+        menu = BoxLayout(orientation='horizontal', size_hint=(1, 0.1), spacing=3)
         self.add_widget(menu)
 
         new_file_button = Button(text="New file", on_press=popup.open)
@@ -104,27 +100,24 @@ class FontConstructor(BoxLayout):
         load_button = Button(text="Load", on_press=load_callback)
         menu.add_widget(load_button)
 
+        cancel_button = Button(text='Cancel', on_press=popup.dismiss)
+        button_holder.add_widget(cancel_button)
+
         # -----
 
-        pixels = GridLayout()
+        pixels = GridLayout(spacing=1)
         pixels.cols = cols
         pixels.rows = rows
         pixels.width = pixels.cols * 2
         self.add_widget(pixels)
 
-        settings = BoxLayout()
-        settings.orientation = 'horizontal'
-        settings.size_hint = (1, 0.1)
+        settings = BoxLayout(spacing=2, orientation='horizontal', size_hint=(1, 0.1))
         self.add_widget(settings)
-
-        filename_label = Label()
-        filename_label.text = "File"
-        settings.add_widget(filename_label)
 
         filename_input = TextInput(text='matrix', multiline=False)
         settings.add_widget(filename_input)
 
-        def restore_button_state():
+        def update_buttons():
             for i in range(0, rows):
                 for j in range(0, cols):
                     if frames[current_frame][i][j] == 1:
@@ -145,15 +138,17 @@ class FontConstructor(BoxLayout):
             if current_frame != len(frames) - 1:
                 current_frame += 1
                 frame_label.text = f'Frame: {current_frame}'
-                restore_button_state()
+                update_buttons()
 
         def prev_frame(instance):
             global current_frame
             if current_frame != 0:
                 current_frame -= 1
                 frame_label.text = f'Frame: {current_frame}'
-                restore_button_state()
+                update_buttons()
 
+        frame_label = Label(text=f'Frame: {current_frame}')
+        settings.add_widget(frame_label)
         prev_frame_button = Button(text='<<', size_hint_max_x=30, on_press=prev_frame)
         settings.add_widget(prev_frame_button)
         next_frame_button = Button(text='>>', size_hint_max_x=30, on_press=next_frame)
@@ -186,14 +181,40 @@ class FontConstructor(BoxLayout):
             print(np.asarray(frames))
             print("------------------")
 
-        status = BoxLayout(orientation='horizontal', size_hint=(1, 0.1))
-        self.add_widget(status)
+        def translate_right(instance):
+            frames[current_frame] = np.roll(frames[current_frame], 1, axis=1)
+            update_buttons()
 
-        debug_button = Button(text='?', size_hint_max_x=30, on_press=print_debug)
-        status.add_widget(debug_button)
+        def translate_left(instance):
+            frames[current_frame] = np.roll(frames[current_frame], -1, axis=1)
+            update_buttons()
 
-        frame_label = Label(text=f'Frame: {current_frame}')
-        status.add_widget(frame_label)
+        def translate_up(instance):
+            frames[current_frame] = np.roll(frames[current_frame], -1, axis=0)
+            update_buttons()
+
+        def translate_down(instance):
+            frames[current_frame] = np.roll(frames[current_frame], 1, axis=0)
+            update_buttons()
+
+        # status = BoxLayout(orientation='horizontal', size_hint=(1, 0.1), spacing=1)
+        # self.add_widget(status)
+
+        btn_left = Button(text='<-', size_hint_max_x=30, on_press=translate_left)
+        settings.add_widget(btn_left)
+
+        btn_right = Button(text='->', size_hint_max_x=30, on_press=translate_right)
+        settings.add_widget(btn_right)
+
+        btn_up = Button(text='/\\', size_hint_max_x=30, on_press=translate_up)
+        settings.add_widget(btn_up)
+
+        btn_down = Button(text='\/', size_hint_max_x=30, on_press=translate_down)
+        settings.add_widget(btn_down)
+
+        # debug_button = Button(text='?', size_hint_max_x=30, on_press=print_debug)
+        # status.add_widget(debug_button)
+
 
 
 class FontConstructorApp(App):
