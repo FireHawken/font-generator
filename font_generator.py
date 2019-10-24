@@ -19,8 +19,7 @@ kivy.require('1.11.1')
 cols = 11
 rows = 7
 
-matrix = np.zeros((rows, cols), dtype=np.uint8)
-frames = [matrix]
+frames = [np.zeros((rows, cols), dtype=np.uint8)]
 buttons = []
 current_frame = 0
 
@@ -35,25 +34,17 @@ class FontConstructor(BoxLayout):
 
         # end of self init
 
-        def load_callback(instance):
-            global frames
-            frames = list(np.load(filename_input.text + '.npy'))
-            update_buttons()
-
-        def save_callback(instance):
-            np.save(filename_input.text, frames)
-
-        def new_file_callback(instance):
-            global matrix, frames, buttons, current_frame, cols, rows
+        def initialize_workspace_with_size(rows, cols, matrix=None):
+            global frames, buttons, current_frame
             for button_row in buttons:
                 for button in button_row:
                     pixels.remove_widget(button)
-            cols = int(size_w_input.text)
-            rows = int(size_h_input.text)
             pixels.cols = cols
             pixels.rows = rows
-            matrix = np.zeros((rows, cols), dtype=np.uint8)
-            frames = [matrix]
+            if matrix:
+                frames = matrix
+            else:
+                frames = [np.zeros((rows, cols), dtype=np.uint8)]
             buttons = []
             current_frame = 0
             frame_label.text = f'Frame: {current_frame}'
@@ -67,6 +58,24 @@ class FontConstructor(BoxLayout):
                     btn.bind(on_press=process_matrix_changes)
                     pixels.add_widget(btn)
                 buttons.append(button_row)
+
+        def load_callback(instance):
+            global frames
+            frames = list(np.load(filename_input.text + '.npy'))
+            print(frames)
+            initialize_workspace_with_size(*frames[0].shape, matrix=frames)
+            # print(frames[0].shape)
+            update_buttons()
+
+        def save_callback(instance):
+            np.save(filename_input.text, frames)
+            print(frames)
+
+        def new_file_callback(instance):
+            global cols, rows
+            cols = int(size_w_input.text)
+            rows = int(size_h_input.text)
+            initialize_workspace_with_size(rows, cols)
             popup.dismiss()
 
         content = BoxLayout(orientation='vertical')
@@ -214,7 +223,6 @@ class FontConstructor(BoxLayout):
 
         # debug_button = Button(text='?', size_hint_max_x=30, on_press=print_debug)
         # status.add_widget(debug_button)
-
 
 
 class FontConstructorApp(App):
