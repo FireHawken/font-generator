@@ -12,7 +12,12 @@ Requirements:
 - Python 3 for running this tool
 - Microcontroller or device capable of running python with numpy package for using generated file
 
+## Installation
+1. Clone this repo or just download `font_generator.py` and `requirements.txt`
+1. Execute in terminal `pip install -r requirements.txt`
+
 ## Usage
+To run the tool, execute in terminal `python font_generator.py`
 
 ### GUI explanation
 ![Gui layout](img/layout.png "Gui layout")
