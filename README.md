@@ -14,7 +14,7 @@ Requirements:
 ## Usage
 
 ### GUI explanation
-![Gui layout](img/layout.png "Logo Title Text 1")
+![Gui layout](img/layout.png "Gui layout")
 
 ### workflow
 1. Create a new file with desired size by clicking "New file"
@@ -52,3 +52,6 @@ while True:
 ```
 Function `show_img()` takes approx. 61ms to run on RPi Zero for 11x7 display, so you can reach 15 fps for such a 
 small screen.
+
+### example
+![Example animation](img/demo.gif "Example")
