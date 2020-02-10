@@ -9,7 +9,8 @@ Features:
 - optimized for animation
 
 Requirements:
-- Python 3
+- Python 3 for running this tool
+- Microcontroller or device capable of running python with numpy package for using generated file
 
 ## Usage
 
